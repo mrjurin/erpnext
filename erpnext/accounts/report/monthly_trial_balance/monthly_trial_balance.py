@@ -7,6 +7,11 @@ from frappe.utils import getdate, add_months, flt
 from datetime import timedelta
 from frappe.query_builder.functions import Sum
 from erpnext.accounts.report.financial_statements import filter_accounts, filter_out_zero_value_rows
+from erpnext.accounts.report.utils import convert_to_presentation_currency, get_currency
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+    get_accounting_dimensions,
+    get_dimension_with_children,
+)
 
 from erpnext.accounts.report.trial_balance.trial_balance import get_opening_balances
 
@@ -61,25 +66,43 @@ def execute(filters=None):
 			"indent": flt(d.indent),
 			"account_name": get_account_label(d.account_number, d.account_name),
 			"currency": company_currency,
-			"opening_debit": flt(d.get("opening_debit", 0)),
-			"opening_credit": flt(d.get("opening_credit", 0)),
+			"opening_debit": 0.0,
+			"opening_credit": 0.0,
 		}
-		pd = 0
-		pc = 0
+		opening_net = flt(d.get("opening_debit", 0)) - flt(d.get("opening_credit", 0))
+		row["opening_debit"] = opening_net if opening_net > 0 else 0.0
+		row["opening_credit"] = abs(opening_net) if opening_net < 0 else 0.0
+		running_net = opening_net
+		period_debit_total = 0
+		period_credit_total = 0
 		for label, _s, _e in months:
-			row[f"{label}_debit"] = flt(d.get(f"{label}_debit", 0))
-			row[f"{label}_credit"] = flt(d.get(f"{label}_credit", 0))
-			pd += row[f"{label}_debit"]
-			pc += row[f"{label}_credit"]
-		net = (row["opening_debit"] - row["opening_credit"]) + (pd - pc)
+			odr = running_net if running_net > 0 else 0
+			ocr = abs(running_net) if running_net < 0 else 0
+			row[f"{label}_opening_debit"] = odr
+			row[f"{label}_opening_credit"] = ocr
+			md = flt(d.get(f"{label}_debit", 0))
+			mc = flt(d.get(f"{label}_credit", 0))
+			row[f"{label}_debit"] = md
+			row[f"{label}_credit"] = mc
+			closing_net = running_net + (md - mc)
+			cdr = closing_net if closing_net > 0 else 0
+			ccr = abs(closing_net) if closing_net < 0 else 0
+			row[f"{label}_closing_debit"] = cdr
+			row[f"{label}_closing_credit"] = ccr
+			period_debit_total += md
+			period_credit_total += mc
+			running_net = closing_net
+		net = running_net
 		row["closing_debit"] = net if net > 0 else 0
 		row["closing_credit"] = abs(net) if net < 0 else 0
-		row_has = row["opening_debit"] or row["opening_credit"] or row["closing_debit"] or row["closing_credit"]
+		row_has = (abs(row["opening_debit"]) >= 0.005) or (abs(row["opening_credit"]) >= 0.005)
 		if not row_has:
 			for label, _s, _e in months:
-				if row.get(f"{label}_debit") or row.get(f"{label}_credit"):
+				if (abs(row.get(f"{label}_closing_debit", 0)) >= 0.005) or (abs(row.get(f"{label}_closing_credit", 0)) >= 0.005):
 					row_has = True
 					break
+		if not row_has:
+			row_has = (abs(row["closing_debit"]) >= 0.005) or (abs(row["closing_credit"]) >= 0.005)
 		row["has_value"] = 1 if row_has else 0
 		data.append(row)
 
@@ -121,23 +144,68 @@ def get_monthly_sums(filters, months):
 
 	out = {}
 	for label, start_date, end_date in months:
-		query = (
-			frappe.qb.from_(gle)
-			.select(gle.account, Sum(gle.debit).as_("debit"), Sum(gle.credit).as_("credit"))
-			.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0))
-			.groupby(gle.account)
-		)
+		company_currency = frappe.get_cached_value("Company", filters.company, "default_currency")
+		do_convert = bool(filters.get("presentation_currency")) and filters.presentation_currency != company_currency
+		if do_convert:
+			query = (
+				frappe.qb.from_(gle)
+				.select(
+					gle.account,
+					gle.company,
+					gle.posting_date,
+					gle.debit,
+					gle.credit,
+					gle.debit_in_account_currency,
+					gle.credit_in_account_currency,
+					gle.account_currency,
+				)
+				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0))
+			)
+		else:
+			query = (
+				frappe.qb.from_(gle)
+				.select(gle.account, Sum(gle.debit).as_("debit"), Sum(gle.credit).as_("credit"))
+				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0))
+				.groupby(gle.account)
+			)
 
 		if filters.get("cost_center"):
 			query = query.where(gle.cost_center == filters.cost_center)
 		if filters.get("project"):
 			query = query.where(gle.project == filters.project)
 		if filters.get("finance_book"):
-			query = query.where(gle.finance_book == filters.finance_book)
+			company_fb = frappe.get_cached_value("Company", filters.company, "default_finance_book")
+			if filters.get("include_default_book_entries"):
+				query = query.where((gle.finance_book.isin([filters.finance_book, company_fb, ""])) | (gle.finance_book.isnull()))
+			else:
+				query = query.where((gle.finance_book.isin([filters.finance_book, ""])) | (gle.finance_book.isnull()))
+
+		dims = get_accounting_dimensions(as_list=False)
+		for dim in dims:
+			dim_val = filters.get(dim.fieldname)
+			if dim_val:
+				is_tree = frappe.get_cached_value("DocType", dim.document_type, "is_tree")
+				values = dim_val
+				if is_tree:
+					values = get_dimension_with_children(dim.document_type, dim_val)
+				if not isinstance(values, (list, tuple)):
+					values = [values]
+				query = query.where(gle[dim.fieldname].isin(values))
 
 		rows = query.run(as_dict=True)
-		for r in rows:
-			out.setdefault(r.account, {})[label] = {"debit": r.debit or 0, "credit": r.credit or 0}
+		if do_convert:
+			convert_to_presentation_currency(rows, get_currency(filters))
+			by_acc = {}
+			for r in rows:
+				acc = r["account"]
+				by_acc.setdefault(acc, {"debit": 0.0, "credit": 0.0})
+				by_acc[acc]["debit"] += flt(r.get("debit", 0))
+				by_acc[acc]["credit"] += flt(r.get("credit", 0))
+			for acc, sums in by_acc.items():
+				out.setdefault(acc, {})[label] = {"debit": sums["debit"], "credit": sums["credit"]}
+		else:
+			for r in rows:
+				out.setdefault(r.account, {})[label] = {"debit": r.debit or 0, "credit": r.credit or 0}
 
 	return out
 
@@ -184,8 +252,12 @@ def build_columns(months):
 		{"fieldname": "opening_credit", "label": _("Opening (Cr)"), "fieldtype": "Currency", "options": "currency", "width": 120},
 	]
 	for label, _start, _end in months:
+		cols.append({"fieldname": f"{label}_opening_debit", "label": _(f"{label} Opening (Dr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
+		cols.append({"fieldname": f"{label}_opening_credit", "label": _(f"{label} Opening (Cr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
 		cols.append({"fieldname": f"{label}_debit", "label": _(f"{label} (Dr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
 		cols.append({"fieldname": f"{label}_credit", "label": _(f"{label} (Cr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
+		cols.append({"fieldname": f"{label}_closing_debit", "label": _(f"{label} Closing (Dr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
+		cols.append({"fieldname": f"{label}_closing_credit", "label": _(f"{label} Closing (Cr)"), "fieldtype": "Currency", "options": "currency", "width": 120})
 	cols.extend([
 		{"fieldname": "closing_debit", "label": _("Closing (Dr)"), "fieldtype": "Currency", "options": "currency", "width": 120},
 		{"fieldname": "closing_credit", "label": _("Closing (Cr)"), "fieldtype": "Currency", "options": "currency", "width": 120},

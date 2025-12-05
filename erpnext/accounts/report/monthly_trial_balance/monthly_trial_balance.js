@@ -68,6 +68,18 @@ frappe.query_reports["Monthly Trial Balance"] = {
             options: "Finance Book",
         },
         {
+            fieldname: "presentation_currency",
+            label: __("Currency"),
+            fieldtype: "Select",
+            options: erpnext.get_presentation_currency_list(),
+        },
+        {
+            fieldname: "include_default_book_entries",
+            label: __("Include Default FB Entries"),
+            fieldtype: "Check",
+            default: 1,
+        },
+        {
             fieldname: "show_zero_values",
             label: __("Show zero values"),
             fieldtype: "Check",
@@ -79,3 +91,5 @@ frappe.query_reports["Monthly Trial Balance"] = {
     parent_field: "parent_account",
     initial_depth: 3,
 };
+
+erpnext.utils.add_dimensions("Monthly Trial Balance", 6);
