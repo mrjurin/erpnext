@@ -3,7 +3,6 @@
 
 
 from collections import defaultdict
-
 import frappe
 from frappe import _
 from frappe.query_builder import Criterion
@@ -80,7 +79,6 @@ def get_balance_sheet_data(fiscal_year, companies, columns, filters):
 	)
 
 	message, opening_balance = prepare_companywise_opening_balance(asset, liability, equity, companies)
-
 	if opening_balance:
 		unclosed = {
 			"account_name": "'" + _("Unclosed Fiscal Years Profit / Loss (Credit)") + "'",
@@ -104,7 +102,7 @@ def get_balance_sheet_data(fiscal_year, companies, columns, filters):
 	if total_credit:
 		data.append(total_credit)
 
-	report_summary = get_bs_summary(
+	report_summary, _unused = get_bs_summary(
 		companies,
 		asset,
 		liability,
@@ -133,6 +131,7 @@ def prepare_companywise_opening_balance(asset_data, liability_data, equity_data,
 					opening_value += get_opening_balance(account_name, data, company) or 0.0
 
 		opening_balance[company] = opening_value
+		
 
 	if opening_balance:
 		return _("Previous Financial Year is not closed"), opening_balance
@@ -175,10 +174,10 @@ def get_profit_loss_data(fiscal_year, companies, columns, filters):
 
 	chart = get_pl_chart_data(filters, columns, income, expense, net_profit_loss)
 
-	report_summary = get_pl_summary(
+	report_summary, _unused = get_pl_summary(
 		companies, "", income, expense, net_profit_loss, company_currency, filters, True
 	)
-
+	
 	return data, None, chart, report_summary
 
 
@@ -254,7 +253,6 @@ def get_cash_flow_data(fiscal_year, companies, filters):
 	)
 
 	report_summary = get_cash_flow_summary(summary_data, company_currency)
-
 	return data, report_summary
 
 
