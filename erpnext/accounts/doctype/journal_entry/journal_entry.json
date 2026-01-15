@@ -555,7 +555,6 @@
    "read_only": 1
   }
  ],
- "grid_page_length": 50,
  "icon": "fa fa-file-text",
  "idx": 176,
  "is_submittable": 1,
@@ -568,7 +567,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2026-01-07 14:22:07.062853",
+ "modified": "2026-01-14 23:38:47.766257",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Journal Entry",
@@ -613,10 +612,7 @@
    "role": "Auditor"
   }
  ],
- "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "search_fields": "voucher_type,posting_date, due_date, cheque_no",
- "set_name_after_submit": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
