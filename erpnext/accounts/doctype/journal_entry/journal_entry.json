@@ -567,7 +567,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2026-01-14 23:38:47.766257",
+ "modified": "2026-01-15 09:16:35.130939",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Journal Entry",
@@ -613,6 +613,7 @@
   }
  ],
  "search_fields": "voucher_type,posting_date, due_date, cheque_no",
+ "set_name_after_submit": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
