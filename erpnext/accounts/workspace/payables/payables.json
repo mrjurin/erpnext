@@ -125,7 +125,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Payments",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -170,9 +170,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Batch Payment",
+   "link_count": 0,
+   "link_to": "Batch Payment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-16 22:01:44.822844",
+ "modified": "2026-01-16 22:29:31.141699",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payables",
