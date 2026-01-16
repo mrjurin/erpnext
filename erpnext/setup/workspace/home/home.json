@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"SHJKakmLLf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"WU4F-HUcIQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leaderboard\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2tlIH-sm21\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Pending Tasks</b></span>\",\"col\":12}},{\"id\":\"LURPqlDm79\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Sales Invoice Approval\",\"col\":4}},{\"id\":\"4H3G9Sqic7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Sales Invoice Approval\",\"col\":4}},{\"id\":\"q3GZ0HCODn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft JV\",\"col\":4}},{\"id\":\"0xpGJ3iKux\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending JV Approval\",\"col\":4}},{\"id\":\"4Y6d2NRYDd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Budget Entry\",\"col\":4}},{\"id\":\"brTKZfzxHw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Purchase Invoice\",\"col\":4}},{\"id\":\"suGva5jiwD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Purchase Invoice Approval\",\"col\":4}},{\"id\":\"Xqfx4YImes\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Vendor Payment\",\"col\":4}},{\"id\":\"l3aZO5-RNj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Vendor Payment Approval\",\"col\":4}},{\"id\":\"wOaLAErEXY\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"JVu8-FJZCu\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"JiuSi0ubOg\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}},{\"id\":\"ji2Jlm3Q8i\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock\",\"col\":4}},{\"id\":\"N61oiXpuwK\",\"type\":\"card\",\"data\":{\"card_name\":\"CRM\",\"col\":4}},{\"id\":\"6J0CVl1mPo\",\"type\":\"card\",\"data\":{\"card_name\":\"Data Import and Settings\",\"col\":4}}]",
+ "content": "[{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"SHJKakmLLf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"WU4F-HUcIQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leaderboard\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BBKkT7-hJq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Budgetary Control Tasks</b></span>\",\"col\":12}},{\"id\":\"4Y6d2NRYDd\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Budget Entry\",\"col\":4}},{\"id\":\"rv35Embcoi\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Journal Vourcher Tasks</b></span>\",\"col\":12}},{\"id\":\"q3GZ0HCODn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft JV\",\"col\":4}},{\"id\":\"0xpGJ3iKux\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending JV Approval\",\"col\":4}},{\"id\":\"2tlIH-sm21\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Accounts Receivable Tasks</b></span>\",\"col\":12}},{\"id\":\"LURPqlDm79\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Sales Invoice Approval\",\"col\":4}},{\"id\":\"4H3G9Sqic7\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Sales Invoice Approval\",\"col\":4}},{\"id\":\"UWWBJ2eIat\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Purchasing Tasks</b></span>\",\"col\":12}},{\"id\":\"ygx1MrdX85\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Purchase Order\",\"col\":4}},{\"id\":\"4NVP08iepP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending PO Approval\",\"col\":4}},{\"id\":\"brTKZfzxHw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Purchase Invoice\",\"col\":4}},{\"id\":\"suGva5jiwD\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Purchase Invoice Approval\",\"col\":4}},{\"id\":\"SHENuISXr2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounts Payable Tasks</b></span>\",\"col\":12}},{\"id\":\"Xqfx4YImes\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft Vendor Payment\",\"col\":4}},{\"id\":\"l3aZO5-RNj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Vendor Payment Approval\",\"col\":4}},{\"id\":\"wOaLAErEXY\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"JVu8-FJZCu\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"JiuSi0ubOg\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}},{\"id\":\"ji2Jlm3Q8i\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock\",\"col\":4}},{\"id\":\"N61oiXpuwK\",\"type\":\"card\",\"data\":{\"card_name\":\"CRM\",\"col\":4}},{\"id\":\"6J0CVl1mPo\",\"type\":\"card\",\"data\":{\"card_name\":\"Data Import and Settings\",\"col\":4}}]",
  "creation": "2020-01-23 13:46:38.833076",
  "custom_blocks": [],
  "docstatus": 0,
@@ -232,11 +232,15 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-15 22:22:43.561001",
+ "modified": "2026-01-16 14:29:37.735619",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Home",
  "number_cards": [
+  {
+   "label": "Draft Purchase Order",
+   "number_card_name": "Draft Purchase Order"
+  },
   {
    "label": "Draft Purchase Invoice",
    "number_card_name": "Draft Purchase Invoice"
@@ -244,6 +248,10 @@
   {
    "label": "Draft JV",
    "number_card_name": "Draft JV"
+  },
+  {
+   "label": "Pending PO Approval",
+   "number_card_name": "Pending PO Approval"
   },
   {
    "label": "Pending Purchase Invoice Approval",
