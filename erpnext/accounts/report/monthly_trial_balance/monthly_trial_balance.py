@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import getdate, add_months, flt
 from datetime import timedelta
 from frappe.query_builder.functions import Sum
-from erpnext.accounts.report.financial_statements import filter_accounts, filter_out_zero_value_rows
+from erpnext.accounts.report.financial_statements import filter_accounts
 from erpnext.accounts.report.utils import convert_to_presentation_currency, get_currency
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_accounting_dimensions,
@@ -135,10 +135,8 @@ def execute(filters=None):
 		row["has_value"] = 1 if row_has else 0
 		data.append(row)
 
-	if not filters.get("show_zero_values"):
-		data = prune_zero_rows(data, parent_children_map)
-
-	# Sanity check: total Dr must equal total Cr for all leaf accounts.
+	# Sanity check BEFORE pruning: total Dr must equal total Cr for all leaf accounts.
+	# Running this on full data ensures zero-value rows do not hide an imbalance.
 	# An imbalance indicates a GL Entry data integrity issue — log it but do not block the report.
 	leaf_data = [r for r in data if not r.get("is_group")]
 	total_opening_dr = sum(flt(r.get("opening_debit")) for r in leaf_data)
@@ -155,6 +153,9 @@ def execute(filters=None):
 			f"Monthly Trial Balance: Closing imbalance Dr={total_closing_dr} Cr={total_closing_cr} (diff={total_closing_dr - total_closing_cr})",
 			"Trial Balance Imbalance",
 		)
+
+	if not filters.get("show_zero_values"):
+		data = prune_zero_rows(data, parent_children_map)
 
 	return columns, data
 
@@ -255,21 +256,6 @@ def get_monthly_sums(filters, months):
 				out.setdefault(r.account, {})[label] = {"debit": r.debit or 0, "credit": r.credit or 0}
 
 	return out
-
-
-def get_account_info(accounts):
-	if not accounts:
-		return {}
-	info = {}
-	for d in frappe.get_all(
-		"Account",
-		fields=["name", "account_name", "account_number"],
-		filters={"name": ("in", accounts)},
-	):
-		name = d.name
-		label = f"{d.account_number} - {d.account_name}" if d.get("account_number") else d.get("account_name")
-		info[name] = {"account_name": label}
-	return info
 
 
 def get_account_label(number, name):
