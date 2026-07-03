@@ -12,8 +12,20 @@ erpnext.utils.add_dimensions("Cash Flow", 10);
 frappe.query_reports["Cash Flow"]["filters"].splice(8, 1);
 
 frappe.query_reports["Cash Flow"]["filters"].push({
+	fieldtype: "Break",
+});
+
+frappe.query_reports["Cash Flow"]["filters"].push({
+	fieldname: "include_all_finance_books",
+	label: __("Include All Finance Books"),
+	fieldtype: "Check",
+	default: 1,
+});
+
+frappe.query_reports["Cash Flow"]["filters"].push({
 	fieldname: "include_default_book_entries",
 	label: __("Include Default FB Entries"),
 	fieldtype: "Check",
 	default: 1,
+	depends_on: "eval:!doc.include_all_finance_books",
 });

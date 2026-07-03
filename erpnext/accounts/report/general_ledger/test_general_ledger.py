@@ -9,6 +9,26 @@ from erpnext.accounts.report.general_ledger.general_ledger import execute
 
 
 class TestGeneralLedger(FrappeTestCase):
+	def test_include_all_finance_books_skips_finance_book_filter(self):
+		from erpnext.accounts.report.general_ledger.general_ledger import get_conditions
+
+		filters = frappe._dict(
+			{
+				"company": "_Test Company",
+				"from_date": "2024-01-01",
+				"to_date": "2024-12-31",
+				"include_default_book_entries": 1,
+			}
+		)
+		filters.company_fb = frappe.get_cached_value("Company", filters.company, "default_finance_book")
+
+		conditions = get_conditions(filters)
+		self.assertIn("finance_book", conditions)
+
+		filters.include_all_finance_books = 1
+		conditions = get_conditions(filters)
+		self.assertNotIn("finance_book", conditions)
+
 	def test_foreign_account_balance_after_exchange_rate_revaluation(self):
 		"""
 		Checks the correctness of balance after exchange rate revaluation

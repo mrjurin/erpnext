@@ -66,6 +66,7 @@ frappe.query_reports["Monthly Trial Balance"] = {
             label: __("Finance Book"),
             fieldtype: "Link",
             options: "Finance Book",
+            depends_on: "eval:!doc.include_all_finance_books",
         },
         {
             fieldname: "presentation_currency",
@@ -74,10 +75,20 @@ frappe.query_reports["Monthly Trial Balance"] = {
             options: erpnext.get_presentation_currency_list(),
         },
         {
+            fieldtype: "Break",
+        },
+        {
+            fieldname: "include_all_finance_books",
+            label: __("Include All Finance Books"),
+            fieldtype: "Check",
+            default: 1,
+        },
+        {
             fieldname: "include_default_book_entries",
             label: __("Include Default FB Entries"),
             fieldtype: "Check",
             default: 1,
+            depends_on: "eval:!doc.include_all_finance_books",
         },
         {
             fieldname: "show_zero_values",

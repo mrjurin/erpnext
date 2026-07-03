@@ -18,8 +18,19 @@ frappe.query_reports["Balance Sheet"]["filters"].push({
 });
 
 frappe.query_reports["Balance Sheet"]["filters"].push({
+	fieldtype: "Break",
+});
+
+frappe.query_reports["Balance Sheet"]["filters"].push({
 	fieldname: "accumulated_values",
 	label: __("Accumulated Values"),
+	fieldtype: "Check",
+	default: 1,
+});
+
+frappe.query_reports["Balance Sheet"]["filters"].push({
+	fieldname: "include_all_finance_books",
+	label: __("Include All Finance Books"),
 	fieldtype: "Check",
 	default: 1,
 });
@@ -29,4 +40,5 @@ frappe.query_reports["Balance Sheet"]["filters"].push({
 	label: __("Include Default FB Entries"),
 	fieldtype: "Check",
 	default: 1,
+	depends_on: "eval:!doc.include_all_finance_books",
 });

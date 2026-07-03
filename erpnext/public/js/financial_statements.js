@@ -161,6 +161,7 @@ function get_filters() {
 			label: __("Finance Book"),
 			fieldtype: "Link",
 			options: "Finance Book",
+			depends_on: "eval:!doc.include_all_finance_books",
 		},
 		{
 			fieldname: "filter_based_on",

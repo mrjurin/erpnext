@@ -725,18 +725,19 @@ def get_additional_conditions(from_date, ignore_closing_entries, filters, d):
 	if from_date:
 		additional_conditions.append(gle.posting_date >= from_date)
 
-	finance_books = []
-	finance_books.append("")
-	if filter_fb := filters.get("finance_book"):
-		finance_books.append(filter_fb)
+	if not filters.get("include_all_finance_books"):
+		finance_books = []
+		finance_books.append("")
+		if filter_fb := filters.get("finance_book"):
+			finance_books.append(filter_fb)
 
-	if filters.get("include_default_book_entries"):
-		if company_fb := frappe.get_cached_value("Company", d.name, "default_finance_book"):
-			finance_books.append(company_fb)
+		if filters.get("include_default_book_entries"):
+			if company_fb := frappe.get_cached_value("Company", d.name, "default_finance_book"):
+				finance_books.append(company_fb)
 
-		additional_conditions.append((gle.finance_book.isin(finance_books)) | gle.finance_book.isnull())
-	else:
-		additional_conditions.append((gle.finance_book.isin(finance_books)) | gle.finance_book.isnull())
+			additional_conditions.append((gle.finance_book.isin(finance_books)) | gle.finance_book.isnull())
+		else:
+			additional_conditions.append((gle.finance_book.isin(finance_books)) | gle.finance_book.isnull())
 
 	return additional_conditions
 

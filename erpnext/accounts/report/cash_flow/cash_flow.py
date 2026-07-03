@@ -174,17 +174,18 @@ def get_account_type_based_gl_data(company, filters=None):
 	cond = ""
 	filters = frappe._dict(filters or {})
 
-	if filters.include_default_book_entries:
-		company_fb = frappe.get_cached_value("Company", company, "default_finance_book")
-		cond = """ AND (finance_book in ({}, {}, '') OR finance_book IS NULL)
-			""".format(
-			frappe.db.escape(filters.finance_book),
-			frappe.db.escape(company_fb),
-		)
-	else:
-		cond = " AND (finance_book in (%s, '') OR finance_book IS NULL)" % (
-			frappe.db.escape(cstr(filters.finance_book))
-		)
+	if not filters.get("include_all_finance_books"):
+		if filters.include_default_book_entries:
+			company_fb = frappe.get_cached_value("Company", company, "default_finance_book")
+			cond = """ AND (finance_book in ({}, {}, '') OR finance_book IS NULL)
+				""".format(
+				frappe.db.escape(filters.finance_book),
+				frappe.db.escape(company_fb),
+			)
+		else:
+			cond = " AND (finance_book in (%s, '') OR finance_book IS NULL)" % (
+				frappe.db.escape(cstr(filters.finance_book))
+			)
 
 	if filters.get("cost_center"):
 		filters.cost_center = get_cost_centers_with_children(filters.cost_center)

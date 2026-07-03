@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import getdate, add_months, flt
+from frappe.utils import getdate, add_months, flt, cstr
 from datetime import timedelta
 from frappe.query_builder.functions import Sum
 from erpnext.accounts.report.financial_statements import filter_accounts, filter_out_zero_value_rows
@@ -173,12 +173,17 @@ def get_monthly_sums(filters, months):
 			query = query.where(gle.cost_center == filters.cost_center)
 		if filters.get("project"):
 			query = query.where(gle.project == filters.project)
-		if filters.get("finance_book"):
-			company_fb = frappe.get_cached_value("Company", filters.company, "default_finance_book")
+		if not filters.get("include_all_finance_books"):
 			if filters.get("include_default_book_entries"):
-				query = query.where((gle.finance_book.isin([filters.finance_book, company_fb, ""])) | (gle.finance_book.isnull()))
+				company_fb = frappe.get_cached_value("Company", filters.company, "default_finance_book")
+				query = query.where(
+					(gle.finance_book.isin([cstr(filters.finance_book), cstr(company_fb), ""]))
+					| (gle.finance_book.isnull())
+				)
 			else:
-				query = query.where((gle.finance_book.isin([filters.finance_book, ""])) | (gle.finance_book.isnull()))
+				query = query.where(
+					(gle.finance_book.isin([cstr(filters.finance_book), ""])) | (gle.finance_book.isnull())
+				)
 
 		dims = get_accounting_dimensions(as_list=False)
 		for dim in dims:

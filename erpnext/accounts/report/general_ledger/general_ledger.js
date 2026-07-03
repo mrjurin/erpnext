@@ -16,6 +16,7 @@ frappe.query_reports["General Ledger"] = {
 			label: __("Finance Book"),
 			fieldtype: "Link",
 			options: "Finance Book",
+			depends_on: "eval:!doc.include_all_finance_books",
 		},
 		{
 			fieldname: "from_date",
@@ -168,6 +169,9 @@ frappe.query_reports["General Ledger"] = {
 			},
 		},
 		{
+			fieldtype: "Break",
+		},
+		{
 			fieldname: "include_dimensions",
 			label: __("Consider Accounting Dimensions"),
 			fieldtype: "Check",
@@ -179,10 +183,16 @@ frappe.query_reports["General Ledger"] = {
 			fieldtype: "Check",
 		},
 		{
+			fieldname: "include_all_finance_books",
+			label: __("Include All Finance Books"),
+			fieldtype: "Check",
+		},
+		{
 			fieldname: "include_default_book_entries",
 			label: __("Include Default FB Entries"),
 			fieldtype: "Check",
 			default: 1,
+			depends_on: "eval:!doc.include_all_finance_books",
 		},
 		{
 			fieldname: "show_cancelled_entries",

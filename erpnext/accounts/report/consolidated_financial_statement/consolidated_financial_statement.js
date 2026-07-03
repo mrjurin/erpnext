@@ -104,6 +104,7 @@ frappe.query_reports["Consolidated Financial Statement"] = {
 			label: __("Finance Book"),
 			fieldtype: "Link",
 			options: "Finance Book",
+			depends_on: "eval:!doc.include_all_finance_books",
 		},
 		{
 			fieldname: "report",
@@ -121,16 +122,26 @@ frappe.query_reports["Consolidated Financial Statement"] = {
 			default: frappe.defaults.get_user_default("Currency"),
 		},
 		{
+			fieldtype: "Break",
+		},
+		{
 			fieldname: "accumulated_in_group_company",
 			label: __("Accumulated Values in Group Company"),
 			fieldtype: "Check",
 			default: 0,
 		},
 		{
+			fieldname: "include_all_finance_books",
+			label: __("Include All Finance Books"),
+			fieldtype: "Check",
+			default: 1,
+		},
+		{
 			fieldname: "include_default_book_entries",
 			label: __("Include Default FB Entries"),
 			fieldtype: "Check",
 			default: 1,
+			depends_on: "eval:!doc.include_all_finance_books",
 		},
 		{
 			fieldname: "show_zero_values",

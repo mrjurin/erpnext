@@ -9,6 +9,51 @@ from erpnext.accounts.report.trial_balance.trial_balance import execute
 
 
 class TestTrialBalance(FrappeTestCase):
+	def test_include_all_finance_books_skips_finance_book_filter(self):
+		from erpnext.accounts.report.financial_statements import apply_additional_conditions
+
+		filters = frappe._dict(
+			{
+				"company": "_Test Company",
+				"include_default_book_entries": 1,
+			}
+		)
+
+		gl_entry = frappe.qb.DocType("GL Entry")
+		query = apply_additional_conditions(
+			"GL Entry",
+			frappe.qb.from_(gl_entry).select(gl_entry.name),
+			"2024-01-01",
+			False,
+			filters,
+		)
+		self.assertIn("finance_book", str(query))
+
+		filters.include_all_finance_books = 1
+		query = apply_additional_conditions(
+			"GL Entry",
+			frappe.qb.from_(gl_entry).select(gl_entry.name),
+			"2024-01-01",
+			False,
+			filters,
+		)
+		self.assertNotIn("finance_book", str(query))
+
+	def test_consolidated_include_all_finance_books_skips_finance_book_filter(self):
+		from erpnext.accounts.report.consolidated_financial_statement.consolidated_financial_statement import (
+			get_additional_conditions,
+		)
+
+		company = frappe._dict(name="_Test Company")
+		filters = frappe._dict(include_default_book_entries=1)
+
+		conditions = get_additional_conditions(None, False, filters, company)
+		self.assertTrue(any("finance_book" in str(c) for c in conditions))
+
+		filters.include_all_finance_books = 1
+		conditions = get_additional_conditions(None, False, filters, company)
+		self.assertFalse(any("finance_book" in str(c) for c in conditions))
+
 	def setUp(self):
 		from erpnext.accounts.doctype.account.test_account import create_account
 		from erpnext.accounts.doctype.cost_center.test_cost_center import create_cost_center
