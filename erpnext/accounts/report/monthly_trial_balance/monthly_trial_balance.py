@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import getdate, add_months, flt, cstr
 from datetime import timedelta
 from frappe.query_builder.functions import Sum
-from erpnext.accounts.report.financial_statements import filter_accounts, filter_out_zero_value_rows
+from erpnext.accounts.report.financial_statements import filter_accounts
 from erpnext.accounts.report.utils import convert_to_presentation_currency, get_currency
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_accounting_dimensions,
@@ -19,6 +19,38 @@ from erpnext.accounts.report.trial_balance.trial_balance import get_opening_bala
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
 	validate_filters(filters)
+
+	# Required by get_opening_balances to correctly zero out P&L accounts:
+	# year_start_date restricts GL Entry opening query to current fiscal year only,
+	# ensuring P&L accounts show zero opening after a Period Closing Voucher.
+	if not filters.get("year_start_date"):
+		fy = frappe.db.get_value(
+			"Fiscal Year",
+			filters.get("fiscal_year"),
+			["year_start_date", "year_end_date"],
+			as_dict=True,
+		)
+		if fy:
+			filters.year_start_date = str(fy.year_start_date)
+			filters.year_end_date = str(fy.year_end_date)
+		else:
+			# Fallback: find the FY that CONTAINS from_date (year_start_date <= from_date <= year_end_date)
+			fy_name = frappe.db.get_value(
+				"Fiscal Year",
+				{"year_start_date": ("<=", filters.from_date), "year_end_date": (">=", filters.from_date)},
+				["year_start_date", "year_end_date"],
+				as_dict=True,
+			)
+			if fy_name:
+				filters.year_start_date = str(fy_name.year_start_date)
+				filters.year_end_date = str(fy_name.year_end_date)
+			else:
+				filters.year_start_date = filters.from_date
+
+	# Ensure Account Closing Balance includes the period closing voucher entry so that
+	# P&L accounts correctly show zero opening balance after period close.
+	if not filters.get("with_period_closing_entry_for_opening"):
+		filters.with_period_closing_entry_for_opening = 1
 
 	company_currency = frappe.get_cached_value("Company", filters.company, "default_currency")
 	months = get_month_ranges(filters.from_date, filters.to_date)
@@ -64,6 +96,7 @@ def execute(filters=None):
 			"account": d.name,
 			"parent_account": d.parent_account or "",
 			"indent": flt(d.indent),
+			"is_group": d.get("is_group", 0),
 			"account_name": get_account_label(d.account_number, d.account_name),
 			"currency": company_currency,
 			"opening_debit": 0.0,
@@ -73,8 +106,6 @@ def execute(filters=None):
 		row["opening_debit"] = opening_net if opening_net > 0 else 0.0
 		row["opening_credit"] = abs(opening_net) if opening_net < 0 else 0.0
 		running_net = opening_net
-		period_debit_total = 0
-		period_credit_total = 0
 		for label, _s, _e in months:
 			odr = running_net if running_net > 0 else 0
 			ocr = abs(running_net) if running_net < 0 else 0
@@ -89,8 +120,6 @@ def execute(filters=None):
 			ccr = abs(closing_net) if closing_net < 0 else 0
 			row[f"{label}_closing_debit"] = cdr
 			row[f"{label}_closing_credit"] = ccr
-			period_debit_total += md
-			period_credit_total += mc
 			running_net = closing_net
 		net = running_net
 		row["closing_debit"] = net if net > 0 else 0
@@ -105,6 +134,25 @@ def execute(filters=None):
 			row_has = (abs(row["closing_debit"]) >= 0.005) or (abs(row["closing_credit"]) >= 0.005)
 		row["has_value"] = 1 if row_has else 0
 		data.append(row)
+
+	# Sanity check BEFORE pruning: total Dr must equal total Cr for all leaf accounts.
+	# Running this on full data ensures zero-value rows do not hide an imbalance.
+	# An imbalance indicates a GL Entry data integrity issue — log it but do not block the report.
+	leaf_data = [r for r in data if not r.get("is_group")]
+	total_opening_dr = sum(flt(r.get("opening_debit")) for r in leaf_data)
+	total_opening_cr = sum(flt(r.get("opening_credit")) for r in leaf_data)
+	total_closing_dr = sum(flt(r.get("closing_debit")) for r in leaf_data)
+	total_closing_cr = sum(flt(r.get("closing_credit")) for r in leaf_data)
+	if abs(total_opening_dr - total_opening_cr) > 0.01:
+		frappe.log_error(
+			f"Monthly Trial Balance: Opening imbalance Dr={total_opening_dr} Cr={total_opening_cr} (diff={total_opening_dr - total_opening_cr})",
+			"Trial Balance Imbalance",
+		)
+	if abs(total_closing_dr - total_closing_cr) > 0.01:
+		frappe.log_error(
+			f"Monthly Trial Balance: Closing imbalance Dr={total_closing_dr} Cr={total_closing_cr} (diff={total_closing_dr - total_closing_cr})",
+			"Trial Balance Imbalance",
+		)
 
 	if not filters.get("show_zero_values"):
 		data = prune_zero_rows(data, parent_children_map)
@@ -159,13 +207,13 @@ def get_monthly_sums(filters, months):
 					gle.credit_in_account_currency,
 					gle.account_currency,
 				)
-				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0))
+				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0) & (gle.voucher_type != "Period Closing Voucher"))
 			)
 		else:
 			query = (
 				frappe.qb.from_(gle)
 				.select(gle.account, Sum(gle.debit).as_("debit"), Sum(gle.credit).as_("credit"))
-				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0))
+				.where((gle.company == filters.company) & (gle.posting_date >= start_date) & (gle.posting_date <= end_date) & (gle.is_cancelled == 0) & (gle.voucher_type != "Period Closing Voucher"))
 				.groupby(gle.account)
 			)
 
@@ -215,21 +263,6 @@ def get_monthly_sums(filters, months):
 	return out
 
 
-def get_account_info(accounts):
-	if not accounts:
-		return {}
-	info = {}
-	for d in frappe.get_all(
-		"Account",
-		fields=["name", "account_name", "account_number"],
-		filters={"name": ("in", accounts)},
-	):
-		name = d.name
-		label = f"{d.account_number} - {d.account_name}" if d.get("account_number") else d.get("account_name")
-		info[name] = {"account_name": label}
-	return info
-
-
 def get_account_label(number, name):
 	return f"{number} - {name}" if number else name
 
@@ -270,10 +303,3 @@ def build_columns(months):
 	return cols
 
 
-def is_all_zero(row, months):
-	if any([row.get("opening_debit"), row.get("opening_credit"), row.get("closing_debit"), row.get("closing_credit")]):
-		return False
-	for label, _s, _e in months:
-		if row.get(f"{label}_debit") or row.get(f"{label}_credit"):
-			return False
-	return True
