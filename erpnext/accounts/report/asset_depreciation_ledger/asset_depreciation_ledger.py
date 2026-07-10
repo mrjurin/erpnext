@@ -43,20 +43,22 @@ def get_data(filters):
 
 	company_fb = frappe.get_cached_value("Company", filters.get("company"), "default_finance_book")
 
-	if filters.get("include_default_book_assets") and company_fb:
-		if filters.get("finance_book") and cstr(filters.get("finance_book")) != cstr(company_fb):
-			frappe.throw(_("To use a different finance book, please uncheck 'Include Default FB Assets'"))
+	or_filters_data = []
+	if not filters.get("include_all_finance_books"):
+		if filters.get("include_default_book_assets") and company_fb:
+			if filters.get("finance_book") and cstr(filters.get("finance_book")) != cstr(company_fb):
+				frappe.throw(_("To use a different finance book, please uncheck 'Include Default FB Assets'"))
+			else:
+				finance_book = company_fb
+		elif filters.get("finance_book"):
+			finance_book = filters.get("finance_book")
 		else:
-			finance_book = company_fb
-	elif filters.get("finance_book"):
-		finance_book = filters.get("finance_book")
-	else:
-		finance_book = None
+			finance_book = None
 
-	if finance_book:
-		or_filters_data = [["finance_book", "in", ["", finance_book]], ["finance_book", "is", "not set"]]
-	else:
-		or_filters_data = [["finance_book", "in", [""]], ["finance_book", "is", "not set"]]
+		if finance_book:
+			or_filters_data = [["finance_book", "in", ["", finance_book]], ["finance_book", "is", "not set"]]
+		else:
+			or_filters_data = [["finance_book", "in", [""]], ["finance_book", "is", "not set"]]
 
 	gl_entries = frappe.get_all(
 		"GL Entry",
