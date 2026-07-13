@@ -199,7 +199,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Financial Statements",
-   "link_count": 6,
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -268,9 +268,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Simplified Trial Balance",
+   "link_count": 0,
+   "link_to": "Simplified Trial Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-12-05 10:11:27.698997",
+ "modified": "2026-07-13 12:52:17.232262",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Financial Reports",
